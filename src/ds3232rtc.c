@@ -1,21 +1,21 @@
 #include "ds3232rtc.h"
 
 uint8_t RTC_readSecond(TWI_t *twi) {
-    return TWI_readByte(twi, RTC_SECONDS);
+    return bcd2dec(TWI_readByte(twi, RTCADDR, RTC_SECONDS));
 }
 
 uint8_t RTC_readMinute(TWI_t *twi) {
-    return TWI_readByte(twi, RTC_MINUTES);
+    return bcd2dec(TWI_readByte(twi, RTCADDR, RTC_MINUTES));
 }
 
 uint8_t RTC_readHour(TWI_t *twi) {
-    return TWI_readByte(twi, RTC_HOURS);
+    return bcd2dec(TWI_readByte(twi, RTCADDR, RTC_HOURS));
 }
 
 float RTC_readTemperature(TWI_t *twi) {
 
-    int8_t temp3232a = TWI_readByte(twi, TEMP_MSB);
-    uint8_t temp3232b = TWI_readByte(twi, TEMP_LSB);
+    int8_t temp3232a = TWI_readByte(twi, RTCADDR, TEMP_MSB);
+    uint8_t temp3232b = TWI_readByte(twi, RTCADDR, TEMP_LSB);
 
     float temp3232 = (float)temp3232a;
     //for positive temp
@@ -25,7 +25,7 @@ float RTC_readTemperature(TWI_t *twi) {
     //for negative temp
     if((temp3232b == 0x40) && (temp3232a < 0)) temp3232 += 0.75;
     if((temp3232b == 0xc0) && (temp3232a < 0)) temp3232 += 0.25;
-    return (temp3232);
+    return bcd2dec(temp3232);
     /*
     uint8_t msb;
     uint8_t lsb;
@@ -36,16 +36,16 @@ float RTC_readTemperature(TWI_t *twi) {
     return ((int)msb * 100) + ((int)lsb / 4);*/
 }
 
-void RTC_writeSecond(TWI_t *twi, uint8_t data) {
-    TWI_writeByte(twi, RTC_SECONDS, data);
+void RTC_writeSecond(TWI_t *twi, const uint8_t data) {
+    TWI_writeByte(twi, RTCADDR, RTC_SECONDS, dec2bcd(data));
 }
 
-void RTC_writeMinute(TWI_t *twi, uint8_t data) {
-    TWI_writeByte(twi, RTC_MINUTES, data);
+void RTC_writeMinute(TWI_t *twi, const uint8_t data) {
+    TWI_writeByte(twi, RTCADDR, RTC_MINUTES, dec2bcd(data));
 }
 
-void RTC_writeHour(TWI_t *twi, uint8_t data) {
-    TWI_writeByte(twi, RTC_HOURS, data);
+void RTC_writeHour(TWI_t *twi, const uint8_t data) {
+    TWI_writeByte(twi, RTCADDR, RTC_HOURS, dec2bcd(data));
 }
 
 

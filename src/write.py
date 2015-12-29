@@ -28,13 +28,12 @@ while 1:
 
     if line.startswith("L:"):
         line = line[2:]
-        r, g, b, l, s = line.split(" ")
+        r, g, b, l = line.split(" ")
         ser.write('L') # G
         ser.write(chr(int(r))) # R
         ser.write(chr(int(g))) # G
         ser.write(chr(int(b))) # B
         ser.write(chr(int(l))) # B
-        ser.write(chr(int(s))) # B
 
     ser.write("\n")
     print "Value:%s" % line

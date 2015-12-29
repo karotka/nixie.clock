@@ -1,6 +1,5 @@
 #include <avr/io.h>
 #include "twi.h"
-#include "ds3232rtc.h"
 #include <util/delay.h>
 
 /**
@@ -25,31 +24,29 @@ void TWI_MasterInit(TWI_t *twi) {
     twi->MASTER.STATUS |= TWI_MASTER_BUSSTATE_IDLE_gc;
 }
 
-uint8_t TWI_readByte(TWI_t *twi, uint8_t position) {
+uint8_t TWI_readByte(TWI_t *twi, const uint8_t address, const uint8_t position) {
     //if((twi->MASTER.STATUS & TWI_MASTER_BUSSTATE_gm) != TWI_MASTER_BUSSTATE_IDLE_gc);
 
     uint8_t i = 0;
 
-    twi->MASTER.ADDR = RTCADDR;
+    twi->MASTER.ADDR = address;
     while(!(twi->MASTER.STATUS & TWI_MASTER_WIF_bm));
 
     twi->MASTER.DATA = position;
 
-    twi->MASTER.ADDR = RTCADDR + READ;
+    twi->MASTER.ADDR = address + READ;
     while (!(twi->MASTER.STATUS & TWI_MASTER_RIF_bm));
 	i = twi->MASTER.DATA;
 
     TWI_StopTransmission(twi);
 
-    return bcd2dec(i);
+    return i;
 }
 
-void TWI_writeByte(TWI_t *twi, uint8_t position, uint8_t data) {
+void TWI_writeByte(TWI_t *twi, const uint8_t address, const uint8_t position, const uint8_t data) {
     //while((twi->MASTER.STATUS & TWI_MASTER_BUSSTATE_gm) != TWI_MASTER_BUSSTATE_IDLE_gc);
 
-    uint8_t d = dec2bcd(data);
-
-    twi->MASTER.ADDR = RTCADDR | WRITE;
+    twi->MASTER.ADDR = address | WRITE;
     while(!(twi->MASTER.STATUS & TWI_MASTER_WIF_bm));
     if (twi->MASTER.STATUS & TWI_MASTER_RXACK_bm) {
         return;
@@ -61,7 +58,7 @@ void TWI_writeByte(TWI_t *twi, uint8_t position, uint8_t data) {
         return;
     }
 
-    twi->MASTER.DATA = d;
+    twi->MASTER.DATA = data;
     while(!(twi->MASTER.STATUS & TWI_MASTER_WIF_bm));
     if (twi->MASTER.STATUS & TWI_MASTER_RXACK_bm) {
         return;

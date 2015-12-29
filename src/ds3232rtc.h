@@ -1,5 +1,8 @@
 #include "twi.h"
 
+#ifndef DS3232H_H
+#define DS3232H_H
+
 // DS3232 I2C Address
 #define RTCADDR 0xd0
 
@@ -103,9 +106,11 @@ uint8_t RTC_readMinute(TWI_t *twi);
 uint8_t RTC_readHour(TWI_t *twi);
 float RTC_readTemperature(TWI_t *twi);
 
-void RTC_writeSecond(TWI_t *twi, uint8_t data);
-void RTC_writeMinute(TWI_t *twi, uint8_t data);
-void RTC_writeHour(TWI_t *twi, uint8_t data);
+void RTC_writeSecond(TWI_t *twi, const uint8_t data);
+void RTC_writeMinute(TWI_t *twi, const uint8_t data);
+void RTC_writeHour(TWI_t *twi, const uint8_t data);
 
 uint8_t dec2bcd(uint8_t n);
 uint8_t bcd2dec(uint8_t n);
+
+#endif

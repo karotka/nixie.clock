@@ -14,6 +14,7 @@ unsigned char serialRXstatus;
 uint8_t serialRXBufferCount = 0;
 uint8_t timer1counter = 0;
 uint8_t i = 0;
+int dimmer = 0;
 
 char digitsc[DIGITS];
 static TWI_t *twi = &TWIC;
@@ -30,14 +31,13 @@ void setPort(const uint8_t i);
 
 
 ISR(TCD0_OVF_vect) { // 488Hz
-
     char str[7];
-    clearPorts();
 
     sprintf (str, "%02d%02d%02d", time.hour, time.minute, time.second);
     PrintChr(str);
-    SevenSegmentChar(digitsc[0], 0);
+    SevenSegmentChar(digitsc[i], 0);
 
+    clearPorts();
     setPort(i);
     if (i == DIGITS - 1) {
         i = 0;
@@ -108,16 +108,18 @@ ISR(USARTC0_RXC_vect) {
             TCD0_CCABUF = serialRXbuffer[1];
             TCD0_CCBBUF = serialRXbuffer[2];
             TCD0_CCCBUF = serialRXbuffer[3];
-            TCD0_CCDBUF = serialRXbuffer[4];
+            //TCD0_CCDBUF = serialRXbuffer[4];
+            dimmer = (uint8_t)serialRXbuffer[4];
 
+            /*
             if (serialRXbuffer[5] == 1) {
                 PORTD.OUTSET |= PIN4_bm;
             } else {
                 PORTD.OUTCLR |= PIN4_bm;
-            }
-            sprintf(str, "Set light: %d, %d, %d, %d, %d.\n",
-                    serialRXbuffer[1], serialRXbuffer[2], serialRXbuffer[3],
-                    serialRXbuffer[4], serialRXbuffer[5]);
+                }*/
+            sprintf(str, "Set light: %d, %d, %d, %d.\n",
+                    serialRXbuffer[1], serialRXbuffer[2],
+                    serialRXbuffer[3], serialRXbuffer[4]);
         }
 
         USART_sendString(str);
@@ -127,14 +129,14 @@ ISR(USARTC0_RXC_vect) {
 }
 
 void timer0Init() {
-    TCD0_PER = 255;               // Set the period of the waveform
+    TCD0_PER = 128;               // Set the period of the waveform
 
     TCD0_CCABUF = 0;              // set the duty cycle A
     TCD0_CCBBUF = 0;              // set the duty cycle B
     TCD0_CCCBUF = 0;              // set the duty cycle C
     TCD0_CCDBUF = 0;              // set the duty cycle D
 
-    TCD0_CTRLA |= 0x05;           // clock selection clk/64
+    TCD0_CTRLA |= 0x06;           // clock selection clk/64
     TCD0_CTRLB |= 0x03;           // Single slope mode
     TCD0_CTRLB |= 0xf0;           // channel selection CCAEN, CCBEN, CCCEN, CCDEN
 
@@ -143,9 +145,9 @@ void timer0Init() {
 }
 
 void timer1Init() {
-	TCC1.PER = 255;               // Set the period of the waveform
+    TCC1.PER = 255;               // Set the period of the waveform
 
-	TCC1.CTRLA |= 0x07;           // clock slection clk/1024
+    TCC1.CTRLA |= 0x07;           // clock slection clk/1024
     TCC1_CTRLB |= 0x03;           // Single slope mode
 
     /* timer1 OVF enabled */
@@ -156,14 +158,15 @@ void timer1Init() {
 void pinsInit() {
     // PORTD as output
     PORTD.DIR = 0xff;
-    PORTD.DIRSET = PIN4_bm;
-    PORTD.DIRSET = PIN5_bm;
-    PORTD.DIRSET = PIN6_bm;
-    PORTD.DIRSET = PIN7_bm;
+    PORTD.DIRSET |= PIN4_bm;
+    PORTD.DIRSET |= PIN5_bm;
+    PORTD.DIRSET |= PIN6_bm;
+    PORTD.DIRSET |= PIN7_bm;
 
     // PORTE
-    PORTE.DIRSET = PIN0_bm;
-    PORTE.DIRSET = PIN1_bm;
+    PORTE.DIR = 0xff;
+    PORTE.DIRSET |= PIN0_bm;
+    PORTE.DIRSET |= PIN1_bm;
 
     // PORTC as output
     //PORTC.DIR = 0xff;
@@ -296,59 +299,70 @@ void PrintChr(char c[]) {
 }
 
 void clearPorts() {
-    PORTD.OUTCLR |= PIN4_bm;
-    PORTD.OUTCLR |= PIN5_bm;
-    PORTD.OUTCLR |= PIN6_bm;
-    PORTD.OUTCLR |= PIN7_bm;
-    PORTE.OUTCLR |= PIN0_bm;
-    PORTE.OUTCLR |= PIN1_bm;
+    //PORTD.OUTCLR |= PIN4_bm;
+    //PORTD.OUTCLR |= PIN5_bm;
+    //PORTD.OUTCLR |= PIN6_bm;
+    //PORTD.OUTCLR |= PIN7_bm;
+    PORTD.OUT &= 0xf;
+    //PORTE.OUTCLR |= PIN0_bm;
+    //PORTE.OUTCLR |= PIN1_bm;
+    PORTE.OUT &= 0xfc;
 }
 
 void setPort(const uint8_t i) {
     switch (i) {
     case 0:
-        PORTD.OUTCLR |= PIN4_bm;
+        PORTD.OUTSET |= PIN4_bm;
         break;
     case 1:
-        PORTD.OUTCLR |= PIN5_bm;
+        PORTD.OUTSET |= PIN5_bm;
         break;
     case 2:
-        PORTD.OUTCLR |= PIN6_bm;
+        PORTD.OUTSET |= PIN6_bm;
         break;
     case 3:
-        PORTD.OUTCLR |= PIN7_bm;
+        PORTD.OUTSET |= PIN7_bm;
         break;
     case 4:
-        PORTE.OUTCLR |= PIN0_bm;
+        PORTE.OUTSET |= PIN0_bm;
         break;
     case 5:
-        PORTE.OUTCLR |= PIN1_bm;
+        PORTE.OUTSET |= PIN1_bm;
         break;
     }
 }
 
 void setUp16MhzExternalOsc() {
-    // 16MHz external crystal
+    /* Enable 16MHz external crystal oscilator */
     OSC_XOSCCTRL = OSC_FRQRANGE_12TO16_gc | OSC_XOSCSEL_XTAL_16KCLK_gc;
-    //Enable external oscillator
     OSC_CTRL |= OSC_XOSCEN_bm;
-    //Wait for clock stabilization
+
+    /* Wait for oscillator ready */
     while(!(OSC_STATUS & OSC_XOSCRDY_bm));
-    // Selects clock system as external clock
-    // through change protection mechanism
+
+    /* Selects clock system as external clock
+       through change protection mechanism */
     CCP = CCP_IOREG_gc;
+    /* Select external 16Mhz oscilator */
     CLK_CTRL = CLK_SCLKSEL_XOSC_gc;
+
+    /* Disable 2Mhz oscillator */
+    //OSC_CTRL &= ~OSC_RC2MEN_bm;
 }
 
 void setUp32MhzInternalOsc() {
-    /* Trigger protection mechanism */
-    CCP = CCP_IOREG_gc;
-    /* Enable 32Mhz oscilator */
+    /* Enable 32Mhz crystal oscilator */
     OSC_CTRL |= OSC_RC32MEN_bm;
+
     /* Wait for oscillator ready */
     while(!(OSC_STATUS & OSC_RC32MRDY_bm));
+
+    /* Selects clock system as external clock
+       through change protection mechanism */
+    CCP = CCP_IOREG_gc;
     /* Select internal 32Mhz oscilator */
     CLK_CTRL = CLK_SCLKSEL_RC32M_gc;
+
     /* Disable 2Mhz oscillator */
     OSC_CTRL &= ~OSC_RC2MEN_bm;
 }
