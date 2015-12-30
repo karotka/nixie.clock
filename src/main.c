@@ -108,15 +108,8 @@ ISR(USARTC0_RXC_vect) {
             TCD0_CCABUF = serialRXbuffer[1];
             TCD0_CCBBUF = serialRXbuffer[2];
             TCD0_CCCBUF = serialRXbuffer[3];
-            //TCD0_CCDBUF = serialRXbuffer[4];
             dimmer = (uint8_t)serialRXbuffer[4];
 
-            /*
-            if (serialRXbuffer[5] == 1) {
-                PORTD.OUTSET |= PIN4_bm;
-            } else {
-                PORTD.OUTCLR |= PIN4_bm;
-                }*/
             sprintf(str, "Set light: %d, %d, %d, %d.\n",
                     serialRXbuffer[1], serialRXbuffer[2],
                     serialRXbuffer[3], serialRXbuffer[4]);
@@ -154,7 +147,6 @@ void timer1Init() {
     TCC1.INTCTRLA |= TC_OVFINTLVL_LO_gc;
 }
 
-
 void pinsInit() {
     // PORTD as output
     PORTD.DIR = 0xff;
@@ -177,9 +169,6 @@ void pinsInit() {
 
     // PORTA as output
     PORTA.DIR = 0xff;
-
-    // default high
-    //PORTA.OUT = 0xff;
 }
 
 
@@ -299,14 +288,8 @@ void PrintChr(char c[]) {
 }
 
 void clearPorts() {
-    //PORTD.OUTCLR |= PIN4_bm;
-    //PORTD.OUTCLR |= PIN5_bm;
-    //PORTD.OUTCLR |= PIN6_bm;
-    //PORTD.OUTCLR |= PIN7_bm;
-    PORTD.OUT &= 0xf;
-    //PORTE.OUTCLR |= PIN0_bm;
-    //PORTE.OUTCLR |= PIN1_bm;
-    PORTE.OUT &= 0xfc;
+    PORTD.OUT &= 0xf;   // 0b0000....
+    PORTE.OUT &= 0xfc;  // 0b......00
 }
 
 void setPort(const uint8_t i) {
@@ -347,7 +330,7 @@ void setUp16MhzExternalOsc() {
     CLK_CTRL = CLK_SCLKSEL_XOSC_gc;
 
     /* Disable 2Mhz oscillator */
-    //OSC_CTRL &= ~OSC_RC2MEN_bm;
+    OSC_CTRL &= ~OSC_RC2MEN_bm;
 }
 
 void setUp32MhzInternalOsc() {
