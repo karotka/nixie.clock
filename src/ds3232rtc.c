@@ -1,18 +1,18 @@
 #include "ds3232rtc.h"
 
-uint8_t RTC_readSecond(TWI_t *twi) {
-    return bcd2dec(TWI_readByte(twi, RTCADDR, RTC_SECONDS));
+void RTC_readSecond(TWI_t *twi, DSRTC_t *rtc) {
+    rtc->second = bcd2dec(TWI_readByte(twi, RTCADDR, RTC_SECONDS));
 }
 
-uint8_t RTC_readMinute(TWI_t *twi) {
-    return bcd2dec(TWI_readByte(twi, RTCADDR, RTC_MINUTES));
+void RTC_readMinute(TWI_t *twi, DSRTC_t *rtc) {
+    rtc->minute = bcd2dec(TWI_readByte(twi, RTCADDR, RTC_MINUTES));
 }
 
-uint8_t RTC_readHour(TWI_t *twi) {
-    return bcd2dec(TWI_readByte(twi, RTCADDR, RTC_HOURS));
+void RTC_readHour(TWI_t *twi, DSRTC_t *rtc) {
+    rtc->hour = bcd2dec(TWI_readByte(twi, RTCADDR, RTC_HOURS));
 }
 
-float RTC_readTemperature(TWI_t *twi) {
+void RTC_readTemperature(TWI_t *twi, DSRTC_t *rtc) {
 
     int8_t temp3232a = TWI_readByte(twi, RTCADDR, TEMP_MSB);
     uint8_t temp3232b = TWI_readByte(twi, RTCADDR, TEMP_LSB);
@@ -25,7 +25,7 @@ float RTC_readTemperature(TWI_t *twi) {
     //for negative temp
     if((temp3232b == 0x40) && (temp3232a < 0)) temp3232 += 0.75;
     if((temp3232b == 0xc0) && (temp3232a < 0)) temp3232 += 0.25;
-    return bcd2dec(temp3232);
+    rtc->temperature = bcd2dec(temp3232);
     /*
     uint8_t msb;
     uint8_t lsb;

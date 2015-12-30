@@ -18,7 +18,7 @@ int dimmer = 0;
 
 char digitsc[DIGITS];
 static TWI_t *twi = &TWIC;
-static struct RTC_t time = {0};
+static DSRTC_t *rtc;
 
 void pinsInit();
 void setUp16MhzExternalOsc();
@@ -33,7 +33,7 @@ void setPort(const uint8_t i);
 ISR(TCD0_OVF_vect) { // 488Hz
     char str[7];
 
-    sprintf (str, "%02d%02d%02d", time.hour, time.minute, time.second);
+    sprintf (str, "%02d%02d%02d", rtc->hour, rtc->minute, rtc->second);
     PrintChr(str);
     SevenSegmentChar(digitsc[i], 0);
 
@@ -52,12 +52,12 @@ ISR(TCC1_OVF_vect) { // 30Hz
     if (timer1counter == 15) {
         timer1counter = 0;
 
-        time.second = RTC_readSecond(twi);
+        RTC_readSecond(twi, rtc);
 
-        if (time.second == 0) {
-            time.minute = RTC_readMinute(twi);
-            time.hour = RTC_readHour(twi);
-            time.temperature = RTC_readTemperature(twi);
+        if (rtc->second == 0) {
+            RTC_readMinute(twi, rtc);
+            RTC_readHour(twi, rtc);
+            RTC_readTemperature(twi, rtc);
         }
     }
     timer1counter++;
@@ -79,8 +79,8 @@ int main(void) {
     char str[20];
 
     for(;;) {
-        sprintf (str, "%d:%d:%d %.1fC \n", time.hour, time.minute,
-            time.second, time.temperature);
+        sprintf (str, "%d:%d:%d %.1fC \n", rtc->hour, rtc->minute,
+            rtc->second, rtc->temperature);
         USART_sendString(str);
         _delay_ms(1000);
     }

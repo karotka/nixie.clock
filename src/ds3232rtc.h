@@ -86,12 +86,12 @@ enum ALARM_TYPES_t {
 #define CENTURY 7                  //Century bit in Month register
 #define DYDT 6                     //Day/Date flag bit in alarm Day/Date registers
 
-struct RTC_t {
+typedef struct {
     uint8_t second;
     uint8_t minute;
     uint8_t hour;
     float temperature;
-};
+} DSRTC_t;
 
 //void setAlarm(ALARM_TYPES_t alarmType, byte seconds, byte minutes, byte hours, byte daydate);
 //void setAlarm(ALARM_TYPES_t alarmType, byte minutes, byte hours, byte daydate);
@@ -101,10 +101,10 @@ struct RTC_t {
 //bool oscStopped(bool clearOSF = true);  //defaults to clear the OSF bit if argument not supplied
 //int temperature(void);
 
-uint8_t RTC_readSecond(TWI_t *twi);
-uint8_t RTC_readMinute(TWI_t *twi);
-uint8_t RTC_readHour(TWI_t *twi);
-float RTC_readTemperature(TWI_t *twi);
+void RTC_readSecond(TWI_t *twi, DSRTC_t *rtc);
+void RTC_readMinute(TWI_t *twi, DSRTC_t *rtc);
+void RTC_readHour(TWI_t *twi, DSRTC_t *rtc);
+void RTC_readTemperature(TWI_t *twi, DSRTC_t *rtc);
 
 void RTC_writeSecond(TWI_t *twi, const uint8_t data);
 void RTC_writeMinute(TWI_t *twi, const uint8_t data);
